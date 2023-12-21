@@ -34,14 +34,18 @@ input_all = pd.concat([train.drop('SalePrice', axis=1), test])
 
 col_cat = list(input_all.select_dtypes(exclude=np.number).columns)
 
+
+#Voy a reemplazar los valores categóricos por el más frecuente (es mejorable)
 imputer_cat = SimpleImputer(strategy="most_frequent")
 imputer_cat.fit(input_all[col_cat])
 train[col_cat] = imputer_cat.transform(train[col_cat])
 test[col_cat] = imputer_cat.transform(test[col_cat])
 
+
+#Ahora reemplazo los valores numéricos por la mediana. (A mejorar)
 col_num = list(train.select_dtypes(include=np.number).columns)
 col_num.remove('SalePrice')
-imputer_num = SimpleImputer(strategy="median")
+imputer_num = KNNImputer()
 imputer_num.fit(input_all[col_num])
 train[col_num] = imputer_num.transform(train[col_num])
 test[col_num] = imputer_num.transform(test[col_num])
