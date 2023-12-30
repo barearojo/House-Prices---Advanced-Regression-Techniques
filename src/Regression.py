@@ -67,14 +67,15 @@ if 'Id' in test_l:
 X_test = test_l
 
 
-model = xgb.XGBRegressor()
+
+model = xgb.XGBRegressor(n_estimators= 5000, max_depth= 4, learning_rate= 0.05, min_child_weight= 1.3, colsample_bytree= 0.5)
 values = cross_val_score(model, X_train, y_train, scoring='neg_mean_squared_log_error', cv=5)
 print(values)
 print(values.mean())
 model.fit(X_train, y_train)
 pred = model.predict(X_test)
 salida = pd.DataFrame({'Id': test_ids, 'SalePrice': pred})
-salida.to_csv("../data/resultados6.csv", index=False)
+salida.to_csv("../data/resultados7.csv", index=False)
 
 
 
