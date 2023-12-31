@@ -5,6 +5,7 @@ Created on Thu Dec 21 13:29:04 2023
 
 @author: juan
 """
+import sys
 import sklearn
 import pandas as pd
 import numpy as np
@@ -30,10 +31,17 @@ test = test.drop('Id', axis=1)
 #Concateno la entrada de ambos para los procesos de etiquetado, que aprenda con ambos conjuntos
 input_all = pd.concat([train.drop('SalePrice', axis=1), test])
 
+#elimino columnas con demasiados valores perdidos
+input_all["PoolQC"] = input_all["PoolQC"].fillna("None")
+input_all["MiscFeature"] = input_all["MiscFeature"].fillna("None")
+input_all["Alley"] = input_all["Alley"].fillna("None")
+input_all["Fence"] = input_all["Fence"].fillna("None")
+
+
 
 col_cat = list(input_all.select_dtypes(exclude=np.number).columns)
 #Voy a reemplazar los valores categóricos por el más frecuente (es mejorable)
-imputer_cat = SimpleImputer(strategy="most_frequent")
+imputer_cat = KNNImputer(n_neighbors=15))
 imputer_cat.fit(input_all[col_cat])
 train[col_cat] = imputer_cat.transform(train[col_cat])
 test[col_cat] = imputer_cat.transform(test[col_cat])
@@ -42,7 +50,7 @@ test[col_cat] = imputer_cat.transform(test[col_cat])
 #Ahora reemplazo los valores numéricos por prediccion knni
 col_num = list(train.select_dtypes(include=np.number).columns)
 col_num.remove('SalePrice')
-imputer_num = KNNImputer(n_neighbors=5)
+imputer_num = KNNImputer(n_neighbors=15)
 imputer_num.fit(input_all[col_num])
 train[col_num] = imputer_num.transform(train[col_num])
 test[col_num] = imputer_num.transform(test[col_num])
@@ -75,7 +83,7 @@ print(values.mean())
 model.fit(X_train, y_train)
 pred = model.predict(X_test)
 salida = pd.DataFrame({'Id': test_ids, 'SalePrice': pred})
-salida.to_csv("../data/resultados7.csv", index=False)
+salida.to_csv("../data/resultados.csv", index=False)
 
 
 
