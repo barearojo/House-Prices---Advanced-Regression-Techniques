@@ -41,7 +41,7 @@ input_all["Fence"] = input_all["Fence"].fillna("None")
 
 col_cat = list(input_all.select_dtypes(exclude=np.number).columns)
 #Voy a reemplazar los valores categóricos por el más frecuente (es mejorable)
-imputer_cat = KNNImputer(n_neighbors=15))
+imputer_cat = SimpleImputer(strategy="most_frequent")
 imputer_cat.fit(input_all[col_cat])
 train[col_cat] = imputer_cat.transform(train[col_cat])
 test[col_cat] = imputer_cat.transform(test[col_cat])
