@@ -113,9 +113,15 @@ print("XgBoost resultado ", values_xgb, "\n Media: ", values_xgb.mean())
 
 model_xgb.fit(X_train, y_train)
 stacked_averaged_models.fit(X_train, y_train)
+
 pred = model_xgb.predict(X_test)
+stack_predict= stacked_averaged_models.predict(X_test)
+
 salida = pd.DataFrame({'Id': test_ids, 'SalePrice': pred})
 salida.to_csv("../data/resultados.csv", index=False)
+
+salida_stacked = pd.DataFrame({'Id': test_ids, 'SalePrice': stack_predict})
+salida_stacked.to_csv("../data/resultados.csv", index=False)
 
 
 
