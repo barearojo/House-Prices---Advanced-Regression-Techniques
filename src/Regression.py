@@ -17,6 +17,8 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import RobustScaler
 from sklearn.linear_model import Lasso
 import lightgbm as lgb
+from StackingAveragedModels import StackingAveragedModels
+
 
 #leemos los datos tanto del entrenamiento como del test y marcamos lo perdidos como NaN
 train = pd.read_csv("../data/train.csv") # Definimos na_values para identificar bien los valores perdidos
@@ -52,7 +54,7 @@ input_all["BsmtFinType2"] = input_all["BsmtFinType2"].fillna("BsmtQual")
 
 
 col_cat = list(input_all.select_dtypes(exclude=np.number).columns)
-#Voy a reemplazar los valores categóricos por el más frecuente (es mejorable)
+#Voy a reemplazar los valores categóricos por el más frecuente 
 imputer_cat = SimpleImputer(strategy="most_frequent")
 imputer_cat.fit(input_all[col_cat])
 train[col_cat] = imputer_cat.transform(train[col_cat])
@@ -90,20 +92,27 @@ X_test = test_l
 
 model_xgb = xgb.XGBRegressor(n_estimators= 5000, max_depth= 4, learning_rate= 0.05, min_child_weight= 1.3, colsample_bytree= 0.5)
 
-''' distintos 
-lasso = make_pipeline(RobustScaler(), Lasso(alpha =0.0005, random_state=1))
+
+model_lasso = make_pipeline(RobustScaler(), Lasso(alpha =0.0005, random_state=1))
 model_lgb = lgb.LGBMRegressor(objective='regression',num_leaves=5,
                               learning_rate=0.05, n_estimators=720,
                               max_bin = 55, bagging_fraction = 0.8,
                               bagging_freq = 5, feature_fraction = 0.2319,
                               feature_fraction_seed=9, bagging_seed=9,
                               min_data_in_leaf =6, min_sum_hessian_in_leaf = 11)
-'''
 
-values = cross_val_score(model_xgb, X_train, y_train, scoring='neg_mean_squared_log_error', cv=5)
-print(values)
-print(values.mean())
+stacked_averaged_models = StackingAveragedModels(base_models = (model_lgb, model_xgb), meta_model = model_lasso)
+
+values_xgb = cross_val_score(model_xgb, X_train, y_train, scoring='neg_mean_squared_log_error', cv=5)
+#values_stack = cross_val_score(stacked_averaged_models, X_train, y_train, scoring='neg_mean_squared_log_error', cv=5)
+
+print("XgBoost resultado ", values_xgb, "\n Media: ", values_xgb.mean())
+#print("Stack resultado ", values_stack, "\n Media: ", values_stack.mean())
+
+
+
 model_xgb.fit(X_train, y_train)
+stacked_averaged_models.fit(X_train, y_train)
 pred = model_xgb.predict(X_test)
 salida = pd.DataFrame({'Id': test_ids, 'SalePrice': pred})
 salida.to_csv("../data/resultados.csv", index=False)
