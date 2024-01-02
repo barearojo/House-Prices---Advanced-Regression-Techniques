@@ -5,21 +5,26 @@ Created on Thu Dec 21 13:29:04 2023
 
 @author: juan
 """
-import sys
-import sklearn
+
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import LabelEncoder, OrdinalEncoder
+from sklearn.preprocessing import LabelEncoder
 from sklearn.impute import KNNImputer
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import cross_val_score
 from sklearn.impute import SimpleImputer
 import xgboost as xgb
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import RobustScaler
+from sklearn.linear_model import Lasso
+import lightgbm as lgb
 
 #leemos los datos tanto del entrenamiento como del test y marcamos lo perdidos como NaN
 train = pd.read_csv("../data/train.csv", na_values="NaN") # Definimos na_values para identificar bien los valores perdidos
 test = pd.read_csv("../data/test.csv", na_values="NaN")
+
+#quitamos dos outliers
+train = train.drop(train[(train['GrLivArea']>4000) & (train['SalePrice']<300000)].index)
+
 
 #quitamos las columna id pero la guardamos para luego
 if 'Id' in train:
@@ -34,8 +39,6 @@ input_all = pd.concat([train.drop('SalePrice', axis=1), test])
 #elimino columnas con demasiados valores perdidos
 input_all["PoolQC"] = input_all["PoolQC"].fillna("None")
 input_all["MiscFeature"] = input_all["MiscFeature"].fillna("None")
-input_all["Alley"] = input_all["Alley"].fillna("None")
-input_all["Fence"] = input_all["Fence"].fillna("None")
 
 
 
@@ -76,12 +79,21 @@ X_test = test_l
 
 
 
-model = xgb.XGBRegressor(n_estimators= 5000, max_depth= 4, learning_rate= 0.05, min_child_weight= 1.3, colsample_bytree= 0.5)
-values = cross_val_score(model, X_train, y_train, scoring='neg_mean_squared_log_error', cv=5)
+model_xgb = xgb.XGBRegressor(n_estimators= 5000, max_depth= 4, learning_rate= 0.05, min_child_weight= 1.3, colsample_bytree= 0.5)
+lasso = make_pipeline(RobustScaler(), Lasso(alpha =0.0005, random_state=1))
+model_lgb = lgb.LGBMRegressor(objective='regression',num_leaves=5,
+                              learning_rate=0.05, n_estimators=720,
+                              max_bin = 55, bagging_fraction = 0.8,
+                              bagging_freq = 5, feature_fraction = 0.2319,
+                              feature_fraction_seed=9, bagging_seed=9,
+                              min_data_in_leaf =6, min_sum_hessian_in_leaf = 11)
+
+
+values = cross_val_score(model_xgb, X_train, y_train, scoring='neg_mean_squared_log_error', cv=5)
 print(values)
 print(values.mean())
-model.fit(X_train, y_train)
-pred = model.predict(X_test)
+model_xgb.fit(X_train, y_train)
+pred = model_xgb.predict(X_test)
 salida = pd.DataFrame({'Id': test_ids, 'SalePrice': pred})
 salida.to_csv("../data/resultados.csv", index=False)
 
