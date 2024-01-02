@@ -19,8 +19,8 @@ from sklearn.linear_model import Lasso
 import lightgbm as lgb
 
 #leemos los datos tanto del entrenamiento como del test y marcamos lo perdidos como NaN
-train = pd.read_csv("../data/train.csv", na_values="NaN") # Definimos na_values para identificar bien los valores perdidos
-test = pd.read_csv("../data/test.csv", na_values="NaN")
+train = pd.read_csv("../data/train.csv") # Definimos na_values para identificar bien los valores perdidos
+test = pd.read_csv("../data/test.csv")
 
 #quitamos dos outliers
 train = train.drop(train[(train['GrLivArea']>4000) & (train['SalePrice']<300000)].index)
@@ -43,6 +43,11 @@ input_all["MiscFeature"] = input_all["MiscFeature"].fillna("None")
 input_all["Alley"] = input_all["Alley"].fillna("None")
 input_all["Fence"] = input_all["Fence"].fillna("None")
 input_all["FireplaceQu"] = input_all["FireplaceQu"].fillna("None")
+input_all["BsmtQual"] = input_all["BsmtQual"].fillna("BsmtQual")
+input_all["BsmtCond"] = input_all["BsmtCond"].fillna("BsmtQual")
+input_all["BsmtExposure"] = input_all["BsmtExposure"].fillna("BsmtQual")
+input_all["BsmtFinType1"] = input_all["BsmtFinType1"].fillna("BsmtQual")
+input_all["BsmtFinType2"] = input_all["BsmtFinType2"].fillna("BsmtQual")
 
 
 
