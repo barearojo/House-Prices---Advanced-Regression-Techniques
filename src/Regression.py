@@ -101,27 +101,30 @@ model_lgb = lgb.LGBMRegressor(objective='regression',num_leaves=5,
                               feature_fraction_seed=9, bagging_seed=9,
                               min_data_in_leaf =6, min_sum_hessian_in_leaf = 11)
 
-stacked_averaged_models = StackingAveragedModels(base_models = (model_lgb, model_xgb), meta_model = model_lasso)
 
 values_xgb = cross_val_score(model_xgb, X_train, y_train, scoring='neg_mean_squared_log_error', cv=5)
-#values_stack = cross_val_score(stacked_averaged_models, X_train, y_train, scoring='neg_mean_squared_log_error', cv=5)
+values_lgb = cross_val_score(model_lgb, X_train, y_train, scoring='neg_mean_squared_log_error', cv=5)
+values_lasso = cross_val_score(model_lasso, X_train, y_train, scoring='neg_mean_squared_log_error', cv=5)
+
 
 print("XgBoost resultado ", values_xgb, "\n Media: ", values_xgb.mean())
-#print("Stack resultado ", values_stack, "\n Media: ", values_stack.mean())
+print("Light resultado ", values_lgb, "\n Media: ", values_lgb.mean())
+print("Lasso resultado ", values_lasso, "\n Media: ", values_lasso.mean())
 
 
 
+#entrenar los modelos
 model_xgb.fit(X_train, y_train)
-stacked_averaged_models.fit(X_train, y_train)
+model_lgb.fit(X_train, y_train)
 
-pred = model_xgb.predict(X_test)
-stack_predict= stacked_averaged_models.predict(X_test)
 
+pred_xgb = model_xgb.predict(X_test)
+pred_lgb = model_lgb.predict(X_test)
+
+pred = pred_lgb*0.55 + pred_xgb*0.45
 salida = pd.DataFrame({'Id': test_ids, 'SalePrice': pred})
 salida.to_csv("../data/resultados.csv", index=False)
 
-salida_stacked = pd.DataFrame({'Id': test_ids, 'SalePrice': stack_predict})
-salida_stacked.to_csv("../data/resultados.csv", index=False)
 
 
 
