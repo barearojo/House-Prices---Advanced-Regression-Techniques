@@ -90,7 +90,12 @@ X_test = test_l
 
 
 
-model_xgb = xgb.XGBRegressor(n_estimators= 5000, max_depth= 4, learning_rate= 0.05, min_child_weight= 1.3, colsample_bytree= 0.5)
+model_xgb = xgb.XGBRegressor(colsample_bytree=0.4603, gamma=0.0468, 
+                             learning_rate=0.05, max_depth=3, 
+                             min_child_weight=1.7817, n_estimators=2200,
+                             reg_alpha=0.4640, reg_lambda=0.8571,
+                             subsample=0.5213, silent=1,
+                             random_state =7, nthread = -1)
 
 
 model_lasso = make_pipeline(RobustScaler(), Lasso(alpha =0.0005, random_state=1))
@@ -104,12 +109,10 @@ model_lgb = lgb.LGBMRegressor(objective='regression',num_leaves=5,
 
 values_xgb = cross_val_score(model_xgb, X_train, y_train, scoring='neg_mean_squared_log_error', cv=5)
 values_lgb = cross_val_score(model_lgb, X_train, y_train, scoring='neg_mean_squared_log_error', cv=5)
-values_lasso = cross_val_score(model_lasso, X_train, y_train, scoring='neg_mean_squared_log_error', cv=5)
 
 
 print("XgBoost resultado ", values_xgb, "\n Media: ", values_xgb.mean())
 print("Light resultado ", values_lgb, "\n Media: ", values_lgb.mean())
-print("Lasso resultado ", values_lasso, "\n Media: ", values_lasso.mean())
 
 
 
@@ -121,7 +124,7 @@ model_lgb.fit(X_train, y_train)
 pred_xgb = model_xgb.predict(X_test)
 pred_lgb = model_lgb.predict(X_test)
 
-pred = pred_lgb*0.55 + pred_xgb*0.45
+pred = pred_lgb*0.5 + pred_xgb*0.5
 salida = pd.DataFrame({'Id': test_ids, 'SalePrice': pred})
 salida.to_csv("../data/resultados.csv", index=False)
 
