@@ -26,6 +26,7 @@ test = pd.read_csv("../data/test.csv", na_values="NaN")
 train = train.drop(train[(train['GrLivArea']>4000) & (train['SalePrice']<300000)].index)
 
 
+
 #quitamos las columna id pero la guardamos para luego
 if 'Id' in train:
     train.drop('Id', axis=1, inplace=True)
@@ -39,6 +40,9 @@ input_all = pd.concat([train.drop('SalePrice', axis=1), test])
 #elimino columnas con demasiados valores perdidos
 input_all["PoolQC"] = input_all["PoolQC"].fillna("None")
 input_all["MiscFeature"] = input_all["MiscFeature"].fillna("None")
+input_all["Alley"] = input_all["Alley"].fillna("None")
+input_all["Fence"] = input_all["Fence"].fillna("None")
+input_all["FireplaceQu"] = input_all["FireplaceQu"].fillna("None")
 
 
 
@@ -80,6 +84,8 @@ X_test = test_l
 
 
 model_xgb = xgb.XGBRegressor(n_estimators= 5000, max_depth= 4, learning_rate= 0.05, min_child_weight= 1.3, colsample_bytree= 0.5)
+
+''' distintos 
 lasso = make_pipeline(RobustScaler(), Lasso(alpha =0.0005, random_state=1))
 model_lgb = lgb.LGBMRegressor(objective='regression',num_leaves=5,
                               learning_rate=0.05, n_estimators=720,
@@ -87,7 +93,7 @@ model_lgb = lgb.LGBMRegressor(objective='regression',num_leaves=5,
                               bagging_freq = 5, feature_fraction = 0.2319,
                               feature_fraction_seed=9, bagging_seed=9,
                               min_data_in_leaf =6, min_sum_hessian_in_leaf = 11)
-
+'''
 
 values = cross_val_score(model_xgb, X_train, y_train, scoring='neg_mean_squared_log_error', cv=5)
 print(values)
